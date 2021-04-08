@@ -11,6 +11,20 @@ alter table super_types owner to postgres;
 create unique index super_types_name_uindex
 	on super_types (name);
 
+create table cards
+(
+	id serial not null
+		constraint cards_pk
+			primary key,
+	name text not null,
+	rarity text not null,
+	super_type_fk integer
+		constraint cards_super_types_id_fk
+			references super_types
+);
+
+alter table cards owner to postgres;
+
 create table mana_types
 (
 	id serial not null
@@ -93,23 +107,6 @@ create table sets
 
 alter table sets owner to postgres;
 
-create table cards
-(
-	id serial not null
-		constraint cards_pk
-			primary key,
-	name text not null,
-	rarity text not null,
-	super_type_fk integer
-		constraint cards_super_types_id_fk
-			references super_types,
-	set_fk integer not null
-		constraint cards_sets_id_fk
-			references sets
-);
-
-alter table cards owner to postgres;
-
 create unique index sets_code_uindex
 	on sets (code);
 
@@ -126,7 +123,10 @@ create table representations
 	flavor_text text,
 	card_id integer not null
 		constraint representations_cards_id_fk
-			references cards
+			references cards,
+	set_id integer not null
+		constraint representations_sets_id_fk
+			references sets
 );
 
 alter table representations owner to postgres;
