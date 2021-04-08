@@ -1,4 +1,4 @@
-create table if not exists super_types
+create table super_types
 (
 	id serial not null
 		constraint super_types_pk
@@ -8,7 +8,7 @@ create table if not exists super_types
 
 alter table super_types owner to postgres;
 
-create table if not exists cards
+create table cards
 (
 	id serial not null
 		constraint cards_pk
@@ -22,7 +22,7 @@ create table if not exists cards
 
 alter table cards owner to postgres;
 
-create table if not exists mana_types
+create table mana_types
 (
 	id serial not null
 		constraint mana_types_pk
@@ -32,7 +32,18 @@ create table if not exists mana_types
 
 alter table mana_types owner to postgres;
 
-create table if not exists sub_types
+create table types
+(
+	id serial not null
+		constraint types_pk
+			primary key,
+	name text not null,
+	is_permanent boolean not null
+);
+
+alter table types owner to postgres;
+
+create table sub_types
 (
 	id serial not null
 		constraint sub_types_pk
@@ -42,7 +53,7 @@ create table if not exists sub_types
 
 alter table sub_types owner to postgres;
 
-create table if not exists creatures
+create table creatures
 (
 	id serial not null
 		constraint creatures_pk
@@ -53,7 +64,7 @@ create table if not exists creatures
 
 alter table creatures owner to postgres;
 
-create table if not exists planeswalkers
+create table planeswalkers
 (
 	id serial not null
 		constraint planeswalkers_pk
@@ -63,24 +74,7 @@ create table if not exists planeswalkers
 
 alter table planeswalkers owner to postgres;
 
-create table if not exists types
-(
-	id serial not null
-		constraint types_pk
-			primary key,
-	name text not null,
-	is_permanent boolean not null,
-	creature_fk integer
-		constraint types_creatures_id_fk
-			references creatures,
-	planeswalker_fk integer
-		constraint types_planeswalkers_id_fk
-			references planeswalkers
-);
-
-alter table types owner to postgres;
-
-create table if not exists sets
+create table sets
 (
 	id serial not null
 		constraint sets_pk
@@ -94,7 +88,7 @@ create table if not exists sets
 
 alter table sets owner to postgres;
 
-create table if not exists representations
+create table representations
 (
 	id serial not null
 		constraint representations_pk
@@ -109,7 +103,7 @@ create table if not exists representations
 
 alter table representations owner to postgres;
 
-create table if not exists rules
+create table rules
 (
 	id serial not null
 		constraint rules_pk
@@ -121,7 +115,7 @@ create table if not exists rules
 
 alter table rules owner to postgres;
 
-create table if not exists mana_cost
+create table mana_cost
 (
 	id serial not null
 		constraint mana_cost_pk
@@ -137,7 +131,7 @@ create table if not exists mana_cost
 
 alter table mana_cost owner to postgres;
 
-create table if not exists card_types
+create table card_types
 (
 	id serial not null
 		constraint card_types_pk
@@ -147,12 +141,18 @@ create table if not exists card_types
 			references cards,
 	type_fk integer not null
 		constraint card_types_types_id_fk
-			references types
+			references types,
+	creature_fk integer
+		constraint card_types_creatures_id_fk
+			references creatures,
+	planeswalker_fk integer
+		constraint card_types_planeswalkers_id_fk
+			references planeswalkers
 );
 
 alter table card_types owner to postgres;
 
-create table if not exists card_subtypes
+create table card_subtypes
 (
 	id serial not null
 		constraint card_subtypes_pk
@@ -167,7 +167,7 @@ create table if not exists card_subtypes
 
 alter table card_subtypes owner to postgres;
 
-create table if not exists card_sets
+create table card_sets
 (
 	id serial not null
 		constraint card_sets_pk
@@ -182,7 +182,7 @@ create table if not exists card_sets
 
 alter table card_sets owner to postgres;
 
-create table if not exists card_rules
+create table card_rules
 (
 	id serial not null
 		constraint card_rules_pk
