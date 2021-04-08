@@ -27,10 +27,21 @@ create table mana_types
 	id serial not null
 		constraint mana_types_pk
 			primary key,
-	name text not null
+	color text not null,
+	basic_land text not null,
+	abbr char not null
 );
 
 alter table mana_types owner to postgres;
+
+create unique index mana_types_abbr_uindex
+	on mana_types (abbr);
+
+create unique index mana_types_basic_land_uindex
+	on mana_types (basic_land);
+
+create unique index mana_types_color_uindex
+	on mana_types (color);
 
 create table types
 (
