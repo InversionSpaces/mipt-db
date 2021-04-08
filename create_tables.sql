@@ -93,7 +93,6 @@ create table sets
 	type text not null,
 	name text not null,
 	code text not null,
-	symbol text,
 	release_date date not null
 );
 
