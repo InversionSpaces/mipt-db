@@ -1,4 +1,4 @@
-create table super_types
+create table mtg.super_types
 (
 	id serial not null
 		constraint super_types_pk
@@ -6,9 +6,9 @@ create table super_types
 	name text not null
 );
 
-alter table super_types owner to postgres;
+alter table mtg.super_types owner to postgres;
 
-create table cards
+create table mtg.cards
 (
 	id serial not null
 		constraint cards_pk
@@ -17,12 +17,12 @@ create table cards
 	rarity text not null,
 	super_type_fk integer
 		constraint cards_super_types_id_fk
-			references super_types
+			references mtg.super_types
 );
 
-alter table cards owner to postgres;
+alter table mtg.cards owner to postgres;
 
-create table mana_types
+create table mtg.mana_types
 (
 	id serial not null
 		constraint mana_types_pk
@@ -32,18 +32,18 @@ create table mana_types
 	abbr char not null
 );
 
-alter table mana_types owner to postgres;
+alter table mtg.mana_types owner to postgres;
 
 create unique index mana_types_abbr_uindex
-	on mana_types (abbr);
+	on mtg.mana_types (abbr);
 
 create unique index mana_types_basic_land_uindex
-	on mana_types (basic_land);
+	on mtg.mana_types (basic_land);
 
 create unique index mana_types_color_uindex
-	on mana_types (color);
+	on mtg.mana_types (color);
 
-create table types
+create table mtg.types
 (
 	id serial not null
 		constraint types_pk
@@ -52,9 +52,9 @@ create table types
 	is_permanent boolean not null
 );
 
-alter table types owner to postgres;
+alter table mtg.types owner to postgres;
 
-create table sub_types
+create table mtg.sub_types
 (
 	id serial not null
 		constraint sub_types_pk
@@ -62,9 +62,9 @@ create table sub_types
 	name text not null
 );
 
-alter table sub_types owner to postgres;
+alter table mtg.sub_types owner to postgres;
 
-create table creatures
+create table mtg.creatures
 (
 	id serial not null
 		constraint creatures_pk
@@ -73,9 +73,9 @@ create table creatures
 	toughness integer not null
 );
 
-alter table creatures owner to postgres;
+alter table mtg.creatures owner to postgres;
 
-create table planeswalkers
+create table mtg.planeswalkers
 (
 	id serial not null
 		constraint planeswalkers_pk
@@ -83,9 +83,9 @@ create table planeswalkers
 	starting_loyalty integer not null
 );
 
-alter table planeswalkers owner to postgres;
+alter table mtg.planeswalkers owner to postgres;
 
-create table sets
+create table mtg.sets
 (
 	id serial not null
 		constraint sets_pk
@@ -96,9 +96,15 @@ create table sets
 	release_date date not null
 );
 
-alter table sets owner to postgres;
+alter table mtg.sets owner to postgres;
 
-create table representations
+create unique index sets_code_uindex
+	on mtg.sets (code);
+
+create unique index sets_name_uindex
+	on mtg.sets (name);
+
+create table mtg.representations
 (
 	id serial not null
 		constraint representations_pk
@@ -108,12 +114,12 @@ create table representations
 	flavor_text text,
 	card_id integer not null
 		constraint representations_cards_id_fk
-			references cards
+			references mtg.cards
 );
 
-alter table representations owner to postgres;
+alter table mtg.representations owner to postgres;
 
-create table rules
+create table mtg.rules
 (
 	id serial not null
 		constraint rules_pk
@@ -123,87 +129,87 @@ create table rules
 	is_triggerable boolean not null
 );
 
-alter table rules owner to postgres;
+alter table mtg.rules owner to postgres;
 
-create table mana_cost
+create table mtg.mana_cost
 (
 	id serial not null
 		constraint mana_cost_pk
 			primary key,
 	card_fk integer not null
 		constraint mana_cost_cards_id_fk
-			references cards,
+			references mtg.cards,
 	mana_type_fk integer not null
 		constraint mana_cost_mana_types_id_fk
-			references mana_types,
+			references mtg.mana_types,
 	amount integer not null
 );
 
-alter table mana_cost owner to postgres;
+alter table mtg.mana_cost owner to postgres;
 
-create table card_types
+create table mtg.card_types
 (
 	id serial not null
 		constraint card_types_pk
 			primary key,
 	card_fk integer not null
 		constraint card_types_cards_id_fk
-			references cards,
+			references mtg.cards,
 	type_fk integer not null
 		constraint card_types_types_id_fk
-			references types,
+			references mtg.types,
 	creature_fk integer
 		constraint card_types_creatures_id_fk
-			references creatures,
+			references mtg.creatures,
 	planeswalker_fk integer
 		constraint card_types_planeswalkers_id_fk
-			references planeswalkers
+			references mtg.planeswalkers
 );
 
-alter table card_types owner to postgres;
+alter table mtg.card_types owner to postgres;
 
-create table card_subtypes
+create table mtg.card_subtypes
 (
 	id serial not null
 		constraint card_subtypes_pk
 			primary key,
 	card_fk integer not null
 		constraint card_sub_types_cards_id_fk
-			references cards,
+			references mtg.cards,
 	sub_type_fk integer not null
 		constraint card_sub_types_sub_types_id_fk
-			references sub_types
+			references mtg.sub_types
 );
 
-alter table card_subtypes owner to postgres;
+alter table mtg.card_subtypes owner to postgres;
 
-create table card_sets
+create table mtg.card_sets
 (
 	id serial not null
 		constraint card_sets_pk
 			primary key,
 	card_fk integer not null
 		constraint card_sets_cards_id_fk
-			references cards,
+			references mtg.cards,
 	set_fk integer not null
 		constraint card_sets_sets_id_fk
-			references sets
+			references mtg.sets
 );
 
-alter table card_sets owner to postgres;
+alter table mtg.card_sets owner to postgres;
 
-create table card_rules
+create table mtg.card_rules
 (
 	id serial not null
 		constraint card_rules_pk
 			primary key,
 	card_fk integer not null
 		constraint card_rules_cards_id_fk
-			references cards,
+			references mtg.cards,
 	rule_fk integer not null
 		constraint card_rules_rules_id_fk
-			references rules
+			references mtg.rules
 );
 
-alter table card_rules owner to postgres;
+alter table mtg.card_rules owner to postgres;
 
