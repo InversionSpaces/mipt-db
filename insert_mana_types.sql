@@ -17,3 +17,7 @@ ON CONFLICT DO NOTHING;
 INSERT INTO mtg.mana_types (color, basic_land, abbr)
 VALUES ('Green', 'Forest', 'G')
 ON CONFLICT DO NOTHING;
+
+INSERT INTO mtg.mana_types (color, basic_land, abbr)
+VALUES ('Any', 'Any', 'A')
+ON CONFLICT DO NOTHING;
