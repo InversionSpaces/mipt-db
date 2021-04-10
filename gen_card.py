@@ -14,31 +14,28 @@ def parse_type_line(type_line):
     else:
         return ("", types, subtypes)
 
-name = card["name"]
-rarity = card["rarity"]
-set_code = card["set"]
+def prepare(string):
+    return string.replace("'", "\\'")
+
+
+name = prepare(card["name"])
 type_line = card["type_line"]
 
 super_type, types, subtypes = parse_type_line(type_line)
 
-print(name, rarity, set_code, type_line, sep="\n")
-print(super_type, types, subtypes)
-
 if (super_type):
-    print(	f"INSERT INTO mtg.cards (name, rarity, super_type_fk, set_fk) \n"
-	        f"VALUES('{name}', '{rarity}', \n"
-            f"(SELECT id FROM mtg.super_types WHERE name = '{super_type}'), \n"
-            f"(SELECT id FROM mtg.sets WHERE code = '{set_code}')); \n" )
+    print(  f"INSERT INTO mtg.cards (name, super_type_fk) \n"
+            f"VALUES('{name}', \n"
+            f"(SELECT id FROM mtg.super_types WHERE name = '{super_type}')); \n" )
 else:
-    print(	f"INSERT INTO mtg.cards (name, rarity, set_fk) \n"
-	        f"VALUES('{name}', '{rarity}', \n"
-            f"(SELECT id FROM mtg.sets WHERE code = '{set_code}')); \n" )
+    print(  f"INSERT INTO mtg.cards (name) \n"
+            f"VALUES('{name}'); \n" )
 
 for card_type in types:
     if card_type == "Creature":
         power = card["power"]
         toughness = card["toughness"]
-        print(  f"WITH creature_id AS (\n"
+        print(  f"WITH temp(creature_id) AS (\n"
                 f"INSERT INTO mtg.creatures (power, toughness) \n"
                 f"VALUES ({power}, {toughness}) \n"
                 f"RETURNING id\n"
@@ -47,10 +44,10 @@ for card_type in types:
                 f"VALUES( \n"
                 f"(SELECT id FROM mtg.cards WHERE name = '{name}'), \n"
                 f"(SELECT id FROM mtg.types WHERE name = '{card_type}'), \n"
-                f"creature_id); \n" )
+                f"temp.creature_id); \n" )
     elif card_type == "Planeswalker":
         loyalty = card["loyalty"]
-        print(  f"WITH planeswalker_id AS (\n"
+        print(  f"WITH temp(planeswalker_id) AS (\n"
                 f"INSERT INTO mtg.planeswalkers (starting_loyalty) \n"
                 f"VALUES ({loyalty}) \n"
                 f"RETURNING id\n"
@@ -59,7 +56,7 @@ for card_type in types:
                 f"VALUES( \n"
                 f"(SELECT id FROM mtg.cards WHERE name = '{name}'), \n"
                 f"(SELECT id FROM mtg.types WHERE name = '{card_type}'), \n"
-                f"planeswalker_id); \n" )
+                f"temp.planeswalker_id); \n" )
     else:
         print(  f"INSERT INTO mtg.card_types (card_fk, type_fk) \n"
                 f"VALUES( \n"
@@ -67,7 +64,7 @@ for card_type in types:
                 f"(SELECT id FROM mtg.types WHERE name = '{card_type}')); \n" )
 
 for sub_type in subtypes:
-    print(  f"WITH sub_type_id AS (\n"
+    print(  f"WITH temp(sub_type_id) AS (\n"
             f"INSERT INTO mtg.sub_types (name) \n"
             f"VALUES ('{sub_type}') \n"
             f"ON CONFLICT DO NOTHING \n"
@@ -76,20 +73,46 @@ for sub_type in subtypes:
             f"INSERT INTO mtg.card_subtypes (card_fk, sub_type_fk) \n"
             f"VALUES( \n"
             f"(SELECT id FROM mtg.cards WHERE name = '{name}'), \n"
-            f"sub_type_id); \n" )
+            f"temp.sub_type_id); \n" )
 
 mana_cost = card["mana_cost"]
-cmc = card["cmc"]
 
 import re
+from collections import Counter
 
-def parse_mana_cost(mana_cost, cmc):
-    r = re.compile("(?:{(\d)}){0,1}{([WUBRG])}")
-    print(mana_cost, r.findall(mana_cost))
-    mana_costs = [  (int(count) if count else 1, abbr) 
-                    for (count, abbr) in r.findall(mana_cost)]
-    any_count = int(cmc) - sum([c[0] for c in mana_costs])
-    return mana_costs + [(any_count, 'A')]
+def parse_mana_cost(mana_cost):
+    r = re.compile("{(\d*|[WUBGRX])}")
+    if (not mana_cost):
+        return []
+    parsed = r.findall(mana_cost)
+    first = parsed[0]
+    if (first.isdigit()):
+        return [('A', int(first))] + list(Counter(parsed[1:]).items())
+    else:
+        return list(Counter(parsed).items())
 
-print(parse_mana_cost(mana_cost, cmc))
-        
+for (abbr, cnt) in parse_mana_cost(mana_cost):
+    print(  f"INSERT INTO mtg.mana_cost (card_fk, mana_type_fk, amount) \n"
+            f"VALUES( \n"
+            f"(SELECT id FROM mtg.cards WHERE name = E'{name}'), \n"
+            f"(SELECT id FROM mtg.mana_types WHERE abbr = '{abbr}'), \n"
+            f"{cnt}); \n")
+
+resp = requests.get(card["prints_search_uri"])
+prints = resp.json()["data"]
+
+from random import randint, sample
+
+for print_ in sample(prints, min(randint(1, 5), len(prints))):
+    flavor_text = prepare(print_.get("flavor_text") or "")
+    artist = print_.get("artist") or ""
+    rarity = print_["rarity"]
+    set_code = print_["set"]
+    image_url = print_["image_uris"]["normal"]
+
+    print(  f"INSERT INTO mtg.representations (image_url, image_artist, flavor_text, \n"
+            f"card_id, set_id, rarity) \n"
+            f"VALUES('{image_url}', '{artist}', E'{flavor_text}', \n"
+            f"(SELECT id FROM mtg.cards WHERE name = '{name}'), \n"
+            f"(SELECT id FROM mtg.sets WHERE code = '{set_code}'), \n"
+            f"'{rarity}'); \n" )
