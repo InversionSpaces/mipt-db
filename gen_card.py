@@ -19,17 +19,18 @@ def prepare(string):
 
 
 name = prepare(card["name"])
-type_line = card["type_line"]
+oracle_text = card.get("oracle_text") or ""
 
+type_line = card["type_line"]
 super_type, types, subtypes = parse_type_line(type_line)
 
 if (super_type):
-    print(  f"INSERT INTO mtg.cards (name, super_type_fk) \n"
-            f"VALUES('{name}', \n"
+    print(  f"INSERT INTO mtg.cards (name, oracle_text, super_type_fk) \n"
+            f"VALUES(E'{name}', '{oracle_text}', \n"
             f"(SELECT id FROM mtg.super_types WHERE name = '{super_type}')); \n" )
 else:
-    print(  f"INSERT INTO mtg.cards (name) \n"
-            f"VALUES('{name}'); \n" )
+    print(  f"INSERT INTO mtg.cards (name, oracle_text) \n"
+            f"VALUES(E'{name}', '{oracle_text}'); \n" )
 
 for card_type in types:
     if card_type == "Creature":
@@ -42,7 +43,7 @@ for card_type in types:
                 f") \n"
                 f"INSERT INTO mtg.card_types (card_fk, type_fk, creature_fk) \n"
                 f"VALUES( \n"
-                f"(SELECT id FROM mtg.cards WHERE name = '{name}'), \n"
+                f"(SELECT id FROM mtg.cards WHERE name = E'{name}'), \n"
                 f"(SELECT id FROM mtg.types WHERE name = '{card_type}'), \n"
                 f"temp.creature_id); \n" )
     elif card_type == "Planeswalker":
@@ -54,13 +55,13 @@ for card_type in types:
                 f") \n"
                 f"INSERT INTO mtg.card_types (card_fk, type_fk, planeswalker_fk) \n"
                 f"VALUES( \n"
-                f"(SELECT id FROM mtg.cards WHERE name = '{name}'), \n"
+                f"(SELECT id FROM mtg.cards WHERE name = E'{name}'), \n"
                 f"(SELECT id FROM mtg.types WHERE name = '{card_type}'), \n"
                 f"temp.planeswalker_id); \n" )
     else:
         print(  f"INSERT INTO mtg.card_types (card_fk, type_fk) \n"
                 f"VALUES( \n"
-                f"(SELECT id FROM mtg.cards WHERE name = '{name}'), \n"
+                f"(SELECT id FROM mtg.cards WHERE name = E'{name}'), \n"
                 f"(SELECT id FROM mtg.types WHERE name = '{card_type}')); \n" )
 
 for sub_type in subtypes:
@@ -72,7 +73,7 @@ for sub_type in subtypes:
             f") \n"
             f"INSERT INTO mtg.card_subtypes (card_fk, sub_type_fk) \n"
             f"VALUES( \n"
-            f"(SELECT id FROM mtg.cards WHERE name = '{name}'), \n"
+            f"(SELECT id FROM mtg.cards WHERE name = E'{name}'), \n"
             f"temp.sub_type_id); \n" )
 
 mana_cost = card["mana_cost"]
@@ -113,6 +114,7 @@ for print_ in sample(prints, min(randint(1, 5), len(prints))):
     print(  f"INSERT INTO mtg.representations (image_url, image_artist, flavor_text, \n"
             f"card_id, set_id, rarity) \n"
             f"VALUES('{image_url}', '{artist}', E'{flavor_text}', \n"
-            f"(SELECT id FROM mtg.cards WHERE name = '{name}'), \n"
+            f"(SELECT id FROM mtg.cards WHERE name = E'{name}'), \n"
             f"(SELECT id FROM mtg.sets WHERE code = '{set_code}'), \n"
             f"'{rarity}'); \n" )
+
