@@ -17,7 +17,6 @@ create table cards
 		constraint cards_pk
 			primary key,
 	name text not null,
-	rarity text not null,
 	super_type_fk integer
 		constraint cards_super_types_id_fk
 			references super_types
@@ -126,7 +125,8 @@ create table representations
 			references cards,
 	set_id integer not null
 		constraint representations_sets_id_fk
-			references sets
+			references sets,
+	rarity text not null
 );
 
 alter table representations owner to postgres;
