@@ -19,7 +19,8 @@ create table cards
 	name text not null,
 	super_type_fk integer
 		constraint cards_super_types_id_fk
-			references super_types
+			references super_types,
+	oracle_text text not null
 );
 
 alter table cards owner to postgres;
@@ -131,18 +132,6 @@ create table representations
 
 alter table representations owner to postgres;
 
-create table rules
-(
-	id serial not null
-		constraint rules_pk
-			primary key,
-	cost text not null,
-	effect text not null,
-	is_triggerable boolean not null
-);
-
-alter table rules owner to postgres;
-
 create table mana_cost
 (
 	id serial not null
@@ -194,19 +183,4 @@ create table card_subtypes
 );
 
 alter table card_subtypes owner to postgres;
-
-create table card_rules
-(
-	id serial not null
-		constraint card_rules_pk
-			primary key,
-	card_fk integer not null
-		constraint card_rules_cards_id_fk
-			references cards,
-	rule_fk integer not null
-		constraint card_rules_rules_id_fk
-			references rules
-);
-
-alter table card_rules owner to postgres;
 
