@@ -25,6 +25,9 @@ create table cards
 
 alter table cards owner to postgres;
 
+create unique index cards_name_uindex
+	on cards (name);
+
 create table mana_types
 (
 	id serial not null
