@@ -1,8 +1,13 @@
 import requests
+import sys
 
 result = ""
 
-resp = requests.get("https://api.scryfall.com/cards/random")
+card_id = sys.argv[1] if len(sys.argv) > 1 else "random"
+
+print(card_id, file=sys.stderr)
+
+resp = requests.get(f"https://api.scryfall.com/cards/{card_id}")
 card = resp.json()
 
 super_types = ["Basic", "Elite", "Host", "Legendary", "Ongoing", "Snow", "World"]
