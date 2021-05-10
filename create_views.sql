@@ -12,17 +12,16 @@ JOIN mtg.types ON card_types.type_fk = types.id
 GROUP BY cards.name;
 
 --- Строковое представление манакоста карты
---- (почему строк меньше, чем карт?)
 CREATE OR REPLACE VIEW mtg.manalines AS
 SELECT cards.name,
-       string_agg(
+       coalesce(string_agg(
            CASE amount
            WHEN 1 THEN '{' || abbr || '}'
            ELSE '{' || amount || abbr || '}'
-           END, '') AS manaline
+           END, ''), '') AS manaline
 FROM mtg.cards
 LEFT JOIN mtg.mana_cost ON cards.id = mana_cost.card_fk
-JOIN mtg.mana_types ON mana_cost.mana_type_fk = mana_types.id
+LEFT JOIN mtg.mana_types ON mana_cost.mana_type_fk = mana_types.id
 GROUP BY cards.name;
 
 --- Все репринты карт

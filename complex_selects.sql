@@ -32,7 +32,7 @@ JOIN mtg.sets ON representations.set_id = sets.id;
 
 --- Средняя мощь существа по каждому подтипу существа
 SELECT DISTINCT sub_types.name,
-avg(creatures.power) OVER (PARTITION BY sub_types.name)
+avg(creatures.power) OVER (PARTITION BY sub_types.name) AS avg_power
 FROM (
     SELECT cards.id, card_types.creature_fk
     FROM mtg.cards
@@ -42,7 +42,8 @@ FROM (
 ) AS creature_cards
 JOIN mtg.creatures ON creature_cards.creature_fk = creatures.id
 JOIN mtg.card_subtypes ON creature_cards.id = card_subtypes.card_fk
-JOIN mtg.sub_types ON card_subtypes.sub_type_fk = sub_types.id;
+JOIN mtg.sub_types ON card_subtypes.sub_type_fk = sub_types.id
+ORDER BY avg_power DESC;
 
 --- Конвертированный манакост для карт
 --- (карты без манакоста игнорируются)
